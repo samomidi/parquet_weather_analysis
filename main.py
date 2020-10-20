@@ -44,16 +44,21 @@ rg_meta.column(7)
 
 # Find min and max statistics of a column for each row group
 column = 7
-data = [["rowgroup", "min", "max"]]
+data = []
 
 for rg in range(pq_file.metadata.num_row_groups):
     rg_meta = pq_file.metadata.row_group(rg)
-    data.append([rg, str(rg_meta.column(column).statistics.min), str(rg_meta.column(column).statistics.max)])
+    data.append([rg, rg_meta.column(column).statistics.min, rg_meta.column(column).statistics.max])
 print(data)
+data_df = pd.DataFrame(data, columns=["rowgroup", "min", "max"])
+
+max_temp = data_df.loc[data_df["max"].idxmax()][2]
+
+
 
 
 rg_meta.column(column).statistics.max
 
 df = dd.read_parquet("weather-rowgroups.parquet", columns=['ObservationDate', 'Region', 'ScreenTemperature'])
-df = df[df.ScreenTemperature == 15.8]
-df.compute()
+df = df[df.ScreenTemperature == max_temp]
+print(df.compute())
